@@ -21,12 +21,11 @@ else{
 	echo "Conexion establecida :".$conjuntoCaracteres." : ";
 }
 			$contador=0;
-			$comprobacion=mysqli_query($link,'select id,nombre from wowhead');
+			$comprobacion=mysqli_query($link,'select id,nombre,categoria_id from wowhead where categoria_id=999');
 			while ($row=mysqli_fetch_array($comprobacion)) {
-				$cat=mysqli_query($link,'select idWow,categoria from category where idWow='.$row[0]);
-				$fila=mysqli_fetch_row($cat);
-				echo $fila[1].'<br>';
-				if($fila[1]==''){
+				//echo "http://es.wowhead.com/item=".$row[0].'<br>';
+				//echo $row[2].'<br>';
+				if($row[2]==999){
 
 					curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1); // tell cURL to return the data
 					curl_setopt ($ch, CURLOPT_URL, "http://es.wowhead.com/item=".$row[0]); /// set the URL to download
@@ -42,18 +41,19 @@ else{
 					echo count($LIs)." : ";
 					//echo $LIs[0]->text();
 					$valor=$LIs[0]->text();
-					$pos=strpos($valor, 'parche\x20');
-					$pos=$pos+10;
-					$patch=substr($valor, $pos,1);
-					echo $patch;
-	  				error_reporting(0);
-					list($miga[0],$miga[1],$miga[2],$miga[3],$miga[4],$miga[5])=explode(',',$criba3);
+					$pos=strpos($valor, '[');
+					$pos=$pos+1;
+					$patch=substr($valor, $pos,8);
+					//echo $patch;
+					$patch=str_replace(']','', $patch);
+	  				//error_reporting(0);
+					list($miga[0],$miga[1],$miga[2],$miga[3])=explode(',',$patch);
 					$valNombre='';
 					$subNombre='';
-					echo "Total numeros:".$miga[2]." : ".$miga[3]."...<br>";
-					error_reporting(-1);
+					//echo "Total numeros:".$miga[2]." : ".$miga[3]."...<br>";
+					//error_reporting(-1);
 					//for ($i=2; $i <count($miga) ; $i++) { 
-							
+								echo $miga[2].":".$miga[3].'<br>';
 							switch ($miga[2]) {
 	   							case 2:
 							        $valNombre='Armas';
@@ -106,8 +106,10 @@ else{
 							         	case 14:
 							         		$subNombre='Miscelanea';
 							         		break;
-							         	default:
+							          	default:
 							         		echo "Subcategoria2 no contemplada".$miga[3]."<br>";
+							         		$valNombre='Retirado';
+							         		$subNombre='Retirado';
 							         		break;
 							         } 
 							    break;   
@@ -258,6 +260,8 @@ else{
 							        	
 							        	default:
 							        		echo "Subcategoria no contemplada".$miga[3]."<br>";
+							        		$valNombre='Retirado';
+							        		$subNombre='Retirado';
 							        		break;
 							        }
 							    break;
@@ -377,12 +381,17 @@ else{
 							    break;
 							    default:
 							    	echo "Categoria no contemplada".$miga[2].":".$miga[3]."<br>";
+							    	$valNombre='Retirado';
+							    	$subNombre='Retirado';
 							  	break;
 					}
 					$contador=$contador+1;
 					$totalr=$totalr+1;
 					echo  $row[1]."=>".$valNombre."=>".$subNombre."<br>";
-					$sqlin="replace into category values ('".$row[0]."','".$valNombre."','".$subNombre."')";
+					$sqlchange="select categoria_id from lista_categorias where categoria_nombre='".$valNombre."' and subcategoria_nombre='".$subNombre."'";
+					$cambio=mysqli_query($link,$sqlchange);
+					$registro=mysqli_fetch_row($cambio);
+					$sqlin="update wowhead set categoria_id=".$registro[0]." where wowhead.id=".$row[0];
 					$insercion=mysqli_query($link,$sqlin);
 					if (!$insercion) {
 					    die('Algo fue mal mientras se insertaba la consulta');
@@ -399,7 +408,10 @@ else{
 		
 
 curl_close ($ch); /// closes the connection
+error_reporting(0);
 mysqli_free_result($comprobacion);
-mysqli_free_result($cat);
+mysqli_free_result($cambio);
+mysqli_free_result($insercion);
+error_reporting(-1);
 mysqli_close($link);
 ?>

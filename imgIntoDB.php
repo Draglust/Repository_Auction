@@ -85,7 +85,7 @@ foreach ($obj['files'] as $i)
 					echo $title." : ";
 				}
 
-				$sql1="replace into wowhead values('".$alianza['item']."','".$title."','".$urlRuta."','')";
+				$sql1="replace into wowhead(id,nombre,ruta) values(".$alianza['item'].",'".$title."','".$urlRuta."')";
 				$sentencia=mysqli_query($link,$sql1);
 				if (!$sentencia) {
 		    		print('Consulta 1 no valida: ' . mysqli_error());

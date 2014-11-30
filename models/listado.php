@@ -15,19 +15,19 @@ class Listado extends CI_Model {
     if($subcat!='99' and $cat=='99')
     {
       //echo "1:Categoria".$cat.":subcategoria:".$subcat.":";
-      $sqlsubcat="select lista_categorias.id_categoria as catid,nombre,subcategoria_nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from lista_categorias inner join timeprice on lista_categorias.id_categoria=timeprice.idWow inner join wowhead on timeprice.idWow=wowhead.id where lista_categorias.subcategoria_nombre=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, lista_categorias.id_categoria desc";
+      $sqlsubcat="select lista_categorias.categoria_id as catid,nombre,subcategoria_nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from lista_categorias inner join timeprice on lista_categorias.categoria_id=timeprice.idWow inner join wowhead on timeprice.idWow=wowhead.id where lista_categorias.subcategoria_nombre=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, lista_categorias.categoria_id desc";
       $query=$this->db->query($sqlsubcat, $subcat);
     }
     elseif($subcat!='99' and $cat!='99')
     {
       //echo "2:Categoria".$categoria.":subcategoria:".$subCategoria.":";
-      $sqlcatsubcat="select lista_categorias.id_categoria as catid,nombre,subcategoria_nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from lista_categorias inner join timeprice on lista_categorias.id_categoria=timeprice.idWow inner join wowhead on timeprice.idWow=wowhead.id where lista_categorias.categoria_nombre=? and lista_categorias.subcategoria_nombre=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, lista_categorias.id_categoria desc";
+      $sqlcatsubcat="select lista_categorias.categoria_id as catid,nombre,subcategoria_nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from lista_categorias inner join timeprice on lista_categorias.categoria_id=timeprice.idWow inner join wowhead on timeprice.idWow=wowhead.id where lista_categorias.categoria_nombre=? and lista_categorias.subcategoria_nombre=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, lista_categorias.categoria_id desc";
       $query=$this->db->query($sqlcatsubcat, array($cat,$subcat));
     }
     elseif ($subcat=='99' and $cat!='99')
      {
       //echo "3:Categoria".$cat.":subcategoria:".$subcat.":";
-      $sqlcat="select lista_categorias.id_categoria as catid,nombre,subcategoria_nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from lista_categorias inner join timeprice on lista_categorias.id_categoria=timeprice.idWow inner join wowhead on timeprice.idWow=wowhead.id where lista_categorias.categoria_nombre=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, lista_categorias.id_categoria desc";
+      $sqlcat="select lista_categorias.categoria_id as catid,nombre,subcategoria_nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from lista_categorias inner join timeprice on lista_categorias.categoria_id=timeprice.idWow inner join wowhead on timeprice.idWow=wowhead.id where lista_categorias.categoria_nombre=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, lista_categorias.categoria_id desc";
       $query=$this->db->query($sqlcat, $cat);
     }
     else
@@ -48,16 +48,16 @@ class Listado extends CI_Model {
 
   function listacategoria()
   {
-    $sqllistcat='select distinct subcategoria_nombre,categoria_nombre from lista_categorias order by categoria_nombre asc';
+    $sqllistcat='select subcategoria_nombre,categoria_nombre from lista_categorias order by categoria_nombre asc';
     $query=$this->db->query($sqllistcat);
     
      
-    return $query->result();
+    return $query->result_array();
   }
   function datosgrafica($idgraph)
   {
     $id=$idgraph;
-    $sql7="select id,min(priceAuction) as priceAuction,dateAuction,numericDate from wowhead inner join timeprice on wowhead.id=timeprice.idwow where datediff(curdate(),dateauction)<15 and idwow=? group by dateauction";
+    $sql7="select wowhead.id,min(priceAuction) as priceAuction,dateAuction,numericDate from wowhead inner join timeprice on wowhead.id=timeprice.idwow where datediff(curdate(),dateauction)<15 and timeprice.idwow=? group by dateauction";
     $query=$this->db->query($sql7, $id);
     return $query->result();
   }
@@ -71,21 +71,27 @@ class Listado extends CI_Model {
       //echo "1:Categoria:".$cat.":subcategoria:".$subcat.":".$patch;
       if($subcat!='99' and $cat=='99')
       {
-        //echo "1:Categoria".$cat.":subcategoria:".$subcat.":";
-        $sqlsubcat="select lista_categorias.id_categoria as catid,nombre,subcategoria_nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from lista_categorias inner join timeprice on lista_categorias.id_categoria=timeprice.idWow inner join wowhead on timeprice.idWow=wowhead.id where parche=? and lista_categorias.subcategoria_nombre=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, lista_categorias.id_categoria desc";
-        $query=$this->db->query($sqlsubcat, array($patch,$subcat));
+        $sqlid="select categoria_id from lista_categorias where subcategoria_nombre=?";
+        $queryid=$this->db->query($sqlid, $subcat);
+        $valor_categoria=$queryid->row('categoria_id');
+        $sqlsubcat="select wowhead.id as catid,nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from timeprice inner join wowhead on timeprice.idWow=wowhead.id where parche=? and wowhead.categoria_id=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, wowhead.categoria_id desc";
+        $query=$this->db->query($sqlsubcat, array($patch,$valor_categoria));
       }
       elseif($subcat!='99' and $cat!='99')
       {
-        //echo "2:Categoria".$categoria.":subcategoria:".$subCategoria.":";
-        $sqlcatsubcat="select lista_categorias.id_categoria as catid,nombre,subcategoria_nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from lista_categorias inner join timeprice on lista_categorias.id_categoria=timeprice.idWow inner join wowhead on timeprice.idWow=wowhead.id where parche=? and lista_categorias.categoria_nombre=? and lista_categorias.subcategoria_nombre=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, lista_categorias.id_categoria desc";
-        $query=$this->db->query($sqlcatsubcat, array($patch,$cat,$subcat));
+        $sqlid="select categoria_id from lista_categorias where categoria_nombre=? and subcategoria_nombre=?";
+        $queryid=$this->db->query($sqlid, array($cat,$subcat));
+        $valor_categoria=$queryid->row('categoria_id');
+        $sqlsubcat="select wowhead.id as catid,nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from timeprice inner join wowhead on timeprice.idWow=wowhead.id where parche=? and wowhead.categoria_id=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, wowhead.categoria_id desc";
+        $query=$this->db->query($sqlsubcat, array($patch,$valor_categoria));
       }
       elseif ($subcat=='99' and $cat!='99')
        {
-        //echo "3:Categoria".$cat.":subcategoria:".$subcat.":";
-        $sqlcat="select lista_categorias.id_categoria as catid,nombre,subcategoria_nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from lista_categorias inner join timeprice on lista_categorias.id_categoria=timeprice.idWow inner join wowhead on timeprice.idWow=wowhead.id where parche=? and lista_categorias.categoria_nombre=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, lista_categorias.id_categoria desc";
-        $query=$this->db->query($sqlcat, array($patch,$cat));
+        $sqlid="select categoria_id from lista_categorias where categoria_nombre=?";
+        $queryid=$this->db->query($sqlid, $subcat);
+        $valor_categoria=$queryid->row('categoria_id');
+        $sqlsubcat="select wowhead.id as catid,nombre,priceAuction,dateAuction,sum(quantity) as cantidad,ruta from timeprice inner join wowhead on timeprice.idWow=wowhead.id where parche=? and wowhead.categoria_id=? and dateauction in(select max(dateauction) from timeprice) group by nombre order by wowhead.parche desc, wowhead.categoria_id desc";
+        $query=$this->db->query($sqlsubcat, array($patch,$valor_categoria));
       }
       else
       {
@@ -107,6 +113,7 @@ class Listado extends CI_Model {
     function calculoclase($retornado)
     {
       $resultado=$retornado;
+      error_reporting(0);
       foreach ($resultado['result'] as &$each) {
 
       $grafic['result']=$this->datosgrafica($each['catid']);
@@ -158,6 +165,7 @@ class Listado extends CI_Model {
      //echo $each['clase']."<br>";   
     }
     return $resultado; 
+    error_reporting(-1);
     }
     function graficos($idgraph)
     {

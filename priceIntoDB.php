@@ -60,6 +60,7 @@ foreach ($obj['files'] as $i)
 			$comprobacion=mysqli_query($link,$sqlComprobacion);
 			//$sqlComprobacion.":: ";
 			$row=mysqli_fetch_array($comprobacion);
+			
 			if (($comprobacion==FALSE or $row==NULL) and $precioMedio>0 ) {
 				$sql1="replace into timeprice values('".$alianza['item']."','".$precioMedio."','".$fecha."','".$alianza['quantity']."','".$fechaNumerica."','".mysql_real_escape_string($alianza['owner'])."')";
 				echo $sql1."<br>";

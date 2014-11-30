@@ -27,7 +27,7 @@
     $dataexp[4]='Cataclysm';
     $dataexp[5]='Mysts of Pandaria';
     $dataexp[6]='Warlords of Draenor';
-
+    $dato['urlb']=base_url();
    $dato['result']=$this->listado->listacategoria();
    
    /*$datac0=$this->listado->calculoclase($data0);
